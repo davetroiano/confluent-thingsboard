@@ -13,14 +13,14 @@ This is an IoT demo integrating Confluent Cloud and IoT platform [ThingsBoard](h
 
 * Create a Basic Confluent Cloud cluster
 * Generate a Kafka API key and secret to be used in the Kafka rule node setup in the next section. E.g., via the `confluent` [CLI](https://docs.confluent.io/confluent-cli/current/install.html#scripted-installation):
-```
-confluent login --prompt --save  // enter your user credentials
-confluent environment list
-confluent environment use env-abcde
-confluent kafka cluster list
-confluent api-key create --resource lkc-abcde
-```
- Copy the API Key and Secret for use in later steps.
+  ```
+  confluent login --prompt --save  // enter your user credentials
+  confluent environment list
+  confluent environment use env-abcde
+  confluent kafka cluster list
+  confluent api-key create --resource lkc-abcde
+  ```
+  Copy the API Key and Secret for use in later steps.
 * Provision a 2-CSU ksqlDB application. We will create persistent queries in a later step, but provision the ksqlDB app now to allow it time to spin up.
 
 ## Configure ThingsBoard to Sink Telemetry to Confluent Cloud
@@ -64,97 +64,97 @@ confluent api-key create --resource lkc-abcde
   - Check the `Export as KML instead of KMZ` box and download the KML file
   - Replace [route.kml](routes/route.kml) with this file
 * Run the simulator. Pick a small number of vehicles, say less than 20. The vehicle type is just a label that you will see in ThingsBoard. You can ignore the MQTT endpoint if using ThingsBoard Cloud, though you'll need to set it if working against a self-managed ThingsBoard instance. The token prefix is used to generate access tokens for each vehicle. Leave this empty to let the simulator generate a random string, or manually set it if you'd like to use the same access tokens across simulator runs.
-```
-% node fleet-simulator.js --help
-Options:
-      --version                  Show version number                   [boolean]
-  -n, --num-vehicles             number of vehicles in fleet          [required]
-  -t, --vehicle-type             type of vehicle, e.g., "Truck"       [required]
-  -m, --mqtt-endpoint            ThingsBoard mqtt endpoint
-                                                  [default: "thingsboard.cloud"]
-  -p, --token-prefix             ThingsBoard access token prefix      [required]
-  -k, --provision-device-key     ThingsBoard provision device key     [required]
-  -s, --provision-device-secret  ThingsBoard provision device secret  [required]
-      --help                     Show help                             [boolean]
-```
+  ```
+  % node fleet-simulator.js --help
+  Options:
+        --version                  Show version number                   [boolean]
+    -n, --num-vehicles             number of vehicles in fleet          [required]
+    -t, --vehicle-type             type of vehicle, e.g., "Truck"       [required]
+    -m, --mqtt-endpoint            ThingsBoard mqtt endpoint
+                                                    [default: "thingsboard.cloud"]
+    -p, --token-prefix             ThingsBoard access token prefix      [required]
+    -k, --provision-device-key     ThingsBoard provision device key     [required]
+    -s, --provision-device-secret  ThingsBoard provision device secret  [required]
+        --help                     Show help                             [boolean]
+  ```
 * Example simulator run:
-```
-node fleet-simulator.js --num-vehicles 5 --vehicle-type Truck --provision-device-key <PROVISION_DEVICE_KEY> --provision-device-secret <PROVISION_DEVICE_SECRET>
-```
+  ```
+  node fleet-simulator.js --num-vehicles 5 --vehicle-type Truck --provision-device-key <PROVISION_DEVICE_KEY> --provision-device-secret <PROVISION_DEVICE_SECRET>
+  ```
 * Ensure no errors. Successful output looks like:
-```
-Client connected!
-Provisioning Truck 0
-Provisioning Truck 1
-Provisioning Truck 2
-Provisioning Truck 3
-Provisioning Truck 4
-request.topic: /provision/response
-request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04002","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
-Successfully provisioned Truck 2
-request.topic: /provision/response
-request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04003","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
-Successfully provisioned Truck 3
-request.topic: /provision/response
-request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04000","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
-Successfully provisioned Truck 0
-request.topic: /provision/response
-request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04001","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
-Successfully provisioned Truck 1
-request.topic: /provision/response
-request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04004","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
-Successfully provisioned Truck 4
-```
+  ```
+  Client connected!
+  Provisioning Truck 0
+  Provisioning Truck 1
+  Provisioning Truck 2
+  Provisioning Truck 3
+  Provisioning Truck 4
+  request.topic: /provision/response
+  request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04002","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
+  Successfully provisioned Truck 2
+  request.topic: /provision/response
+  request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04003","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
+  Successfully provisioned Truck 3
+  request.topic: /provision/response
+  request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04000","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
+  Successfully provisioned Truck 0
+  request.topic: /provision/response
+  request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04001","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
+  Successfully provisioned Truck 1
+  request.topic: /provision/response
+  request.body: {"credentialsValue":"4ffbf691-d1e6-4e95-9cd6-dc4646ff04004","credentialsType":"ACCESS_TOKEN","status":"SUCCESS"}
+  Successfully provisioned Truck 4
+  ```
 * In ThingsBoard, navigate to `Device groups` > `All` and validate that you can see your fleet:
-![img.png](readme-images/device-groups.png)
+  ![img.png](readme-images/device-groups.png)
 * Click on one of the vehicles and go to the `Latest telemetry` tab and validate that telemetry is showing up:
-![img.png](readme-images/device-details.png)
+  ![img.png](readme-images/device-details.png)
 * In the Confluent Cloud Console, navigate to `Topics` and select `telemetry`. In the `Messages` tab, ensure that telemetry data is showing up by way of the Root rule chain edit we performed earlier:
-![img.png](readme-images/message-viewer.png)
+  ![img.png](readme-images/message-viewer.png)
 
 ## ksqlDB App for Aggregate Metrics Calculation
 
 * In the Confluent Cloud Console, select the ksqlDB application created earlier
 * Create a stream from raw telemetry topic that we configured in the ThingsBoard Root rule chain:
-```
-CREATE STREAM telemetry (
-	longitude DOUBLE,
-	latitude DOUBLE,
-	speed DOUBLE,
-	status VARCHAR,
-	deviceType VARCHAR,
-	deviceName VARCHAR, ts BIGINT
-) WITH (
-	kafka_topic='telemetry',
-	value_format='JSON',
-	timestamp='ts'
-);
-```
+  ```
+  CREATE STREAM telemetry (
+  	longitude DOUBLE,
+  	latitude DOUBLE,
+  	speed DOUBLE,
+  	status VARCHAR,
+  	deviceType VARCHAR,
+  	deviceName VARCHAR, ts BIGINT
+  ) WITH (
+  	kafka_topic='telemetry',
+  	value_format='JSON',
+  	timestamp='ts'
+  );
+  ```
 * Create table for windowed aggregation (average speed):
-```
-CREATE TABLE avg_speed
-WITH (
-	kafka_topic='avg_speed',
-	partitions=6,
-	key_format='JSON',
-	value_format='JSON'
-) AS
-SELECT
-	deviceType,
-	deviceName,
-	status,
-	AS_VALUE(deviceType) as device_type,
-	AS_VALUE(deviceName) as device_name,
-	AVG(speed) AS avg_speed,
-	TIMESTAMPTOSTRING(WINDOWSTART, 'yyyy-MM-dd HH:mm:ss') as window_start
-FROM telemetry
-WINDOW TUMBLING (SIZE 30 SECONDS)
-WHERE status = 'On route'
-GROUP BY deviceType, deviceName, status
-EMIT CHANGES;
-```
+  ```
+  CREATE TABLE avg_speed
+  WITH (
+  	kafka_topic='avg_speed',
+  	partitions=6,
+  	key_format='JSON',
+  	value_format='JSON'
+  ) AS
+  SELECT
+  	deviceType,
+  	deviceName,
+  	status,
+  	AS_VALUE(deviceType) as device_type,
+  	AS_VALUE(deviceName) as device_name,
+  	AVG(speed) AS avg_speed,
+  	TIMESTAMPTOSTRING(WINDOWSTART, 'yyyy-MM-dd HH:mm:ss') as window_start
+  FROM telemetry
+  WINDOW TUMBLING (SIZE 30 SECONDS)
+  WHERE status = 'On route'
+  GROUP BY deviceType, deviceName, status
+  EMIT CHANGES;
+  ```
 * Set `auto.offset.reset` to `Earliest`, and add a query property `commit.interval.ms` set to `1000`, and run the query `SELECT * FROM avg_speed EMIT CHANGES;` Ensure that you get results:
-![img.png](readme-images/ksql-editor-select-avg-speed.png)
+  ![img.png](readme-images/ksql-editor-select-avg-speed.png)
 * `Stop` the query
 
 ## Integrate aggregated data back to ThingsBoard
@@ -180,9 +180,9 @@ In this section we'll send the aggregate metrics continuously generated by ksqlD
     - `sasl.mechanism`: `PLAIN`
     - `sasl.jaas.config`: `org.apache.kafka.common.security.plain.PlainLoginModule required username="CLUSTER_API_KEY" password="CLUSTER_API_SECRET";`
 * Navigate to the integration's `Events` tab, select event type `Lifecycle event`, and ensure the integration has successfully started:
-![img.png](readme-images/kafka-integration-setup-success.png)
+  ![img.png](readme-images/kafka-integration-setup-success.png)
 * Navigate to `Device groups` > `All` and select a vehicle. Go to its `Attributes` tab and validate that `recentAvgSpeed` and `recentAvgSpeedReportedTime` attributes show up as device attributes:
-![img.png](readme-images/thingsboard-device-attributes.png)
+  ![img.png](readme-images/thingsboard-device-attributes.png)
 * That's it -- you have simulated telemetry going through ThingsBoard to Confluent Cloud, and back again!
 
 ## Create a ThingsBoard Dashboard
@@ -194,10 +194,10 @@ In this section we'll send the aggregate metrics continuously generated by ksqlD
 * In the `Timewindow` section, select `Realtime` over the last minute
 * In the `Datasources` section, click `Entity alias`, and `Create a new one`
 * Give the alias a name, and under `Filter type`, select `Device type` and pick your device type, toggle `Resolve as multiple entities` on, and click `Add`:
-![img.png](readme-images/dashboard-add-alias.png)
+  ![img.png](readme-images/dashboard-add-alias.png)
 * In the `Entity timeseries are required` input, select all attributes and click `Add`:
-![img.png](readme-images/dashboard-add-trip-animation.png)
+  ![img.png](readme-images/dashboard-add-trip-animation.png)
 * You should see your fleet traveling around:
-![img.png](readme-images/dashboard-map.png)
+  ![img.png](readme-images/dashboard-map.png)
 * Play around with other widgets! To see an example, click `Import dashboard` and import [fleet_monitoring.json](thingsboard-objects/fleet_monitoring.json). As expected, the recent average speed for each vehicle is less jumpy than the raw telemetry speeds that include stops and spurts:
-![img.png](readme-images/dashboard.png)
+  ![img.png](readme-images/dashboard.png)
