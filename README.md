@@ -1,4 +1,4 @@
-# Confluent / ThingsBoard Demo
+# Confluent Cloud / ThingsBoard Cloud integration IoT demo
 
 ## Intro
 This is an IoT demo integrating Confluent Cloud and IoT platform [ThingsBoard](https://thingsboard.io/). ThingsBoard provides device APIs, device management constructs, and IoT dashboarding. Confluent Cloud serves as the serverless telemetry persistence layer, stream processing engine, and streaming data integration platform to downstream data platforms like S3.
