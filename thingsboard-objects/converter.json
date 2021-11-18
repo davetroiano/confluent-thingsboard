@@ -3,7 +3,7 @@
   "type": "UPLINK",
   "debugMode": true,
   "configuration": {
-    "decoder": "function decodeToString(payload) {\n   return String.fromCharCode.apply(String, payload);\n}\n\nfunction decodeToJson(payload) {\n   // covert payload to string.\n   var str = decodeToString(payload);\n\n   // parse string to JSON\n   var data = JSON.parse(str);\n   return data;\n}\n\nvar msg = decodeToJson(payload);\nvar deviceName = msg.DEVICE_NAME;\nvar deviceType = msg.DEVICE_TYPE;\nvar avgSpeed = msg.AVG_SPEED;\nvar reportedTime = msg.WINDOW_START;\n\nvar result = {\n   deviceName: deviceName,\n   deviceType: deviceType,\n   attributes: {\n       recentAvgSpeed: avgSpeed,\n       recentAvgSpeedReportedTime: reportedTime\n   }\n};\n\nreturn result;",
+    "decoder": "function decodeToString(payload) {\n   return String.fromCharCode.apply(String, payload);\n}\n\nfunction decodeToJson(payload) {\n   // covert payload to string.\n   var str = decodeToString(payload);\n\n   // parse string to JSON\n   var data = JSON.parse(str);\n   return data;\n}\n\nvar msg = decodeToJson(payload);\nvar deviceName = msg.DEVICE_NAME;\nvar deviceType = msg.DEVICE_TYPE;\nvar avgSpeed = msg.AVG_SPEED;\nvar reportedTime = msg.WINDOW_START;\n\nvar result = {\n   deviceName: deviceName,\n   deviceType: deviceType,\n   attributes: {\n       recentAvgSpeed: avgSpeed,\n       recentAvgSpeedReportedTime: reportedTime\n   },\n   telemetry: {\n       recentAvgSpeed: avgSpeed,\n       recentAvgSpeedReportedTime: reportedTime\n   }\n};\n\nreturn result;",
     "encoder": null
   },
   "additionalInfo": {
