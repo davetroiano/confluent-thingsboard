@@ -1,0 +1,24 @@
+{
+  "name": "fleet-simulator",
+  "version": "1.0.0",
+  "description": "Vehicle fleet simulator for IoT platform ThingsBoard",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davetroiano/confluent-thingsboard.git"
+  },
+  "main": "fleet-simulator.js",
+  "keywords": [
+    "iot",
+    "confluent",
+    "kafka",
+    "thingsboard"
+  ],
+  "author": "Dave Troiano",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "jsdom": "^18.0.1",
+    "mqtt": "^4.2.8",
+    "yargs": "^17.2.1"
+  }
+}
