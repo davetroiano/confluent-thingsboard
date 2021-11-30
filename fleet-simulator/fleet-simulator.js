@@ -2,6 +2,9 @@ const mqtt = require('mqtt'),
     fs = require('fs'),
     jsdom = require('jsdom')
 
+const STATUS_ON_ROUTE = "On route",
+      STATUS_STOPPED = "Stopped"
+
 var argv = require('yargs/yargs')(process.argv.slice(2))
     .options({
         'num-vehicles': {
@@ -41,16 +44,23 @@ var argv = require('yargs/yargs')(process.argv.slice(2))
 
 if (typeof argv.tokenPrefix === 'undefined') {
     argv.tokenPrefix = require('crypto').randomUUID()
+    console.log(`Provisining vehicles with access token prefix ${argv.tokenPrefix}`)
 }
+
 provisionFleet()
 
-var indexes = new Array(argv.numVehicles)
+var indexes      = new Array(argv.numVehicles),
+    speeds       = new Array(argv.numVehicles),
+    statuses     = new Array(argv.numVehicles),
+    ticksMoving  = new Array(argv.numVehicles),
+    ticksStopped = new Array(argv.numVehicles)
 
 var gpsData = []
-var speed = 40,
-    status = "On route"
 
-
+speeds.fill(40)
+statuses.fill(STATUS_STOPPED)
+ticksMoving.fill(0)
+ticksStopped.fill(0)
 
 for (var i = 0; i < argv.numVehicles; i++) {
     var accessToken = argv.tokenPrefix + i.toString()
@@ -74,8 +84,6 @@ for (var i = 0; i < argv.numVehicles; i++) {
     }
 
     indexes[i] = Math.floor(Math.random() * gpsData.length / 2) * 2
-    stopTime = -5
-    runTime = 0
 
     setInterval(publishTelemetry, 1000, client, indexes, i)
 }
@@ -101,16 +109,12 @@ function provisionFleet() {
     })
 
     client.on('message', function(topic, message) {
-        console.log('request.topic: ' + topic)
-        console.log('request.body: ' + message.toString())
         var requestId = topic.slice('v1/devices/me/rpc/request/'.length),
             messageData = JSON.parse(message.toString())
         if (messageData.status === 'SUCCESS') {
             token = messageData.credentialsValue
             vehicleIndex = token.substr(token.length - 1)
             console.log(`Successfully provisioned ${argv.vehicleType} ${vehicleIndex}`)
-        } else {
-            console.warn(`Failed to provision ${argv.vehicleType}; does it already exist?`)
         }
     })
 }
@@ -119,35 +123,47 @@ function publishTelemetry(client, indexes, device) {
     if (typeof gpsData === 'undefined') {
         return
     }
-    console.log('client ' + device, ' indexes ' + indexes[device] + ' and ' + (indexes[device] + 1))
-    console.log(gpsData[indexes[device]])
-    console.log(gpsData[1 + indexes[device]])
+
     client.publish('v1/devices/me/telemetry', JSON.stringify({
         'longitude': gpsData[indexes[device]],
         'latitude': gpsData[indexes[device] + 1],
-        "speed": speed,
-        "status": status,
+        "speed": speeds[device],
+        "status": statuses[device],
         "deviceType": argv.vehicleType,
         "deviceName": argv.vehicleType + ' ' + device.toString(),
         "ts": Date.now()
 
     }))
-    stopTime++
-    runTime++
-    if (stopTime % 20 == 0) {
-        status = "On route"
-    }
-    if (status == "On route") {
-        speed = (40 + Math.random() * 5 + Math.random() * 20).toFixed(1)
-    }
-    if (runTime % 20 == 0) {
-        status = "At the stop"
-        speed = 0
-    }
-    if (status == "On route") {
+
+    // move unless we've been stopped for < 5 iterations or have been moving for > 20 iterations
+    // (with some randomness introduced)
+    if ((ticksStopped[device] > 5 && Math.random() < 0.2) ||
+        (ticksMoving[device] > 0 && !(ticksMoving[device] > 20 && Math.random() < 0.1))) {
+
+        // move vehicle along path (plus two for latitude & longitude)
         indexes[device] += 2
-    }
-    if (indexes[device] == gpsData.length) {
-        indexes[device] = 0
+        if (indexes[device] == gpsData.length) {
+            indexes[device] = 0
+        }
+
+        // debug log if this is a status change
+        if (statuses[device] == STATUS_STOPPED) {
+            console.log(`vehicle ${device} starting to move from (${gpsData[indexes[device]]}, ${gpsData[1 + indexes[device]]})`)
+        }
+
+        ticksMoving[device]++
+        ticksStopped[device] = 0
+        statuses[device] = STATUS_ON_ROUTE
+        speeds[device] = (40 + Math.random() * 5 + Math.random() * 20).toFixed(1)
+    } else {
+        // debug log if this is a status change
+        if (statuses[device] == STATUS_ON_ROUTE) {
+            console.log(`vehicle ${device} stopped at (${gpsData[indexes[device]]}, ${gpsData[1 + indexes[device]]})`)
+        }
+
+        ticksMoving[device] = 0
+        ticksStopped[device]++
+        statuses[device] = STATUS_STOPPED
+        speeds[device] = 0
     }
 }
